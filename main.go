@@ -52,58 +52,32 @@ func main() {
 	currentYear := currentTime.Year()
 	currentMonth := currentTime.Local().Month().String()
 	pathTarget := exPath + "/" + config.OldName + config.Extension
+	destFolder := fmt.Sprintf("Time Sheet %s %d", idnMonth[currentMonth], currentYear)
 
-	found := findFile(config, exPath)
+	err = os.Mkdir(exPath+"/"+destFolder, 0775)
 
-	if found {
+	if err != nil {
+		fmt.Println("Error creating destination folder:", err)
+		return
+	}
 
-		destFolder := fmt.Sprintf("Time Sheet %s %d", idnMonth[currentMonth], currentYear)
+	//loop through the users
+	users := config.UsersName
+	for _, user := range users {
+		newFileName := fmt.Sprintf("%s %s %d %s%s", config.NewName, idnMonth[currentMonth], currentYear, user, config.Extension)
+		destination := filepath.Join(destFolder, newFileName)
+		fullDestinationPath := fmt.Sprintf("%s/%s", exPath, destination)
 
-		err := os.Mkdir(exPath+"/"+destFolder, 0775)
-
+		err := copyFileToNewFolder(pathTarget, fullDestinationPath)
 		if err != nil {
-			fmt.Println("Error creating destination folder:", err)
+			fmt.Println("Error copying file to destination", err)
 			return
 		}
 
-		users := config.UsersName
-
-		//loop through the users
-		for _, user := range users {
-			newFileName := fmt.Sprintf("%s %s %d %s%s", config.NewName, idnMonth[currentMonth], currentYear, user, config.Extension)
-			destination := filepath.Join(destFolder, newFileName)
-			fullDestinationPath := fmt.Sprintf("%s/%s", exPath, destination)
-
-			err := copyFileToNewFolder(pathTarget, fullDestinationPath)
-			if err != nil {
-				fmt.Println("Error copying file to destination", err)
-				return
-			}
-
-			fmt.Println("File copied to destination successfully.")
-		}
+		fmt.Println("File copied to destination successfully.")
 	}
+	// }
 
-}
-
-func findFile(fileData JsonStruct, execPath string) bool {
-
-	isFileFound := false
-
-	fileName := fileData.OldName + fileData.Extension
-
-	err := filepath.Walk(execPath, func(path string, info os.FileInfo, err error) error {
-		if !info.IsDir() && filepath.Base(path) == fileName {
-			isFileFound = true
-		}
-
-		return nil
-	})
-
-	if err != nil {
-		fmt.Print("Error :", err)
-	}
-	return isFileFound
 }
 
 func readJsonFile(filePath string) (config JsonStruct, err error) {
