@@ -10,12 +10,10 @@ import (
 )
 
 type JsonStruct struct {
-	Extension string `json:"extension"`
-	FilePath  string `json:"dir_path"`
-	OldName   string `json:"old_name"`
-	Name      string `json:"name"`
-	User1     string `json:"user_name_1"`
-	User2     string `json:"user_name_2"`
+	Extension string   `json:"extension"`
+	OldName   string   `json:"old_file_name"`
+	NewName   string   `json:"new_file_name"`
+	UsersName []string `json:"users_name"`
 }
 
 func main() {
@@ -36,23 +34,23 @@ func main() {
 		"December":  "Desember",
 	}
 
-	exec, err := os.Executable()
-	if err != nil {
-		panic(err)
-	}
+	// exec, err := os.Executable()
+	// if err != nil {
+	// 	panic(err)
+	// }
 
-	exPath := filepath.Dir(exec)
+	// exPath := filepath.Dir(exec) // for build only
+	exPath := "." // for dev only
 
 	config, err := readJsonFile(exPath)
 	if err != nil {
 		fmt.Print("Error", err)
+		panic(err)
 	}
 
 	currentTime := time.Now()
 	currentYear := currentTime.Year()
 	currentMonth := currentTime.Local().Month().String()
-	newFileName1 := fmt.Sprintf("Time Sheet %s %s %d %s", config.Name, currentMonth, currentYear, config.User1)
-	newFileName2 := fmt.Sprintf("Time Sheet %s %s %d %s", config.Name, currentMonth, currentYear, config.User2)
 	pathTarget := exPath + "/" + config.OldName + config.Extension
 
 	found := findFile(config, exPath)
@@ -68,26 +66,22 @@ func main() {
 			return
 		}
 
-		destination1 := filepath.Join(destFolder, newFileName1)
-		destination2 := filepath.Join(destFolder, newFileName2)
-		fullDestinationPath1 := fmt.Sprintf("%s/%s", exPath, destination1)
-		fullDestinationPath2 := fmt.Sprintf("%s/%s", exPath, destination2)
+		users := config.UsersName
 
-		// Copy the file to the first destination within the new folder
-		err = copyFileToNewFolder(pathTarget, fullDestinationPath1)
-		if err != nil {
-			fmt.Println("Error copying file to destination 1:", err)
-			return
-		}
-		fmt.Println("File copied to destination 1 successfully.")
+		//loop through the users
+		for _, user := range users {
+			newFileName := fmt.Sprintf("%s %s %d %s%s", config.NewName, idnMonth[currentMonth], currentYear, user, config.Extension)
+			destination := filepath.Join(destFolder, newFileName)
+			fullDestinationPath := fmt.Sprintf("%s/%s", exPath, destination)
 
-		// Copy the file to the second destination within the new folder
-		err = copyFileToNewFolder(pathTarget, fullDestinationPath2)
-		if err != nil {
-			fmt.Println("Error copying file to destination 2:", err)
-			return
+			err := copyFileToNewFolder(pathTarget, fullDestinationPath)
+			if err != nil {
+				fmt.Println("Error copying file to destination", err)
+				return
+			}
+
+			fmt.Println("File copied to destination successfully.")
 		}
-		fmt.Println("File copied to destination 2 successfully.")
 	}
 
 }
