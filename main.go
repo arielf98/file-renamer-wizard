@@ -34,13 +34,13 @@ func main() {
 		"December":  "Desember",
 	}
 
-	// exec, err := os.Executable()
-	// if err != nil {
-	// 	panic(err)
-	// }
+	exec, err := os.Executable()
+	if err != nil {
+		panic(err)
+	}
 
-	// exPath := filepath.Dir(exec) // for build only
-	exPath := "." // for dev only
+	exPath := filepath.Dir(exec) // for build only
+	// exPath := "." // for dev only
 
 	config, err := readJsonFile(exPath)
 	if err != nil {
@@ -76,8 +76,6 @@ func main() {
 
 		fmt.Println("File copied to destination successfully.")
 	}
-	// }
-
 }
 
 func readJsonFile(filePath string) (config JsonStruct, err error) {
